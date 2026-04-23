@@ -1,0 +1,35 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+
+# Async HTTP client (Confluence REST API)
+httpx==0.28.1
+
+# Browser automation (SAML auth)
+playwright==1.49.1
+
+# LLM (GitHub Models API / OpenAI-compatible)
+openai==1.82.0
+
+# Image processing
+Pillow==11.1.0
+
+# PDF generation
+weasyprint==63.1
+
+# HTML parsing
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# Database (translation cache)
+aiosqlite==0.20.0
+
+# Settings
+pydantic-settings==2.7.1
+
+# WebSocket support (included in uvicorn[standard])
+
+# Dev / Testing
+pytest==8.3.4
+pytest-asyncio==0.24.0
+httpx  # also used for test client
