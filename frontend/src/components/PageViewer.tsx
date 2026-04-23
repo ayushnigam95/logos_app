@@ -28,6 +28,7 @@ export function PageViewer({ jobId, pageId }: Props) {
     model: string | null;
   } | null>(null);
   const [chatInput, setChatInput] = useState('');
+  const [imageFit, setImageFit] = useState(false); // false = natural (full) resolution, true = fit to pane
   const chatBottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export function PageViewer({ jobId, pageId }: Props) {
       'Describe this image in detail. If it is a diagram, explain its structure, components, and relationships. If it contains text, transcribe the key text. Be concise and use plain text (no markdown).';
     const initialHistory: ImageChatMessage[] = [{ role: 'user', content: initialQuestion }];
     setChatInput('');
+    setImageFit(false);
     setImageChat({ src, messages: initialHistory, loading: true, error: null, model: null });
     try {
       const result = await analyzeImage(jobId, src, { history: initialHistory });
@@ -204,8 +206,25 @@ export function PageViewer({ jobId, pageId }: Props) {
               </button>
             </div>
             <div className="image-analysis-body">
-              <div className="image-analysis-image-pane">
-                <img src={imageChat.src} alt="Analyzed" className="image-analysis-preview" />
+              <div className={`image-analysis-image-pane${imageFit ? ' fit' : ''}`}>
+                <div className="image-analysis-toolbar">
+                  <button
+                    type="button"
+                    onClick={() => setImageFit((f) => !f)}
+                    title={imageFit ? 'Show full resolution' : 'Fit to pane'}
+                  >
+                    {imageFit ? '🔍 Full size' : '🗜 Fit'}
+                  </button>
+                  <a href={imageChat.src} target="_blank" rel="noopener noreferrer">
+                    ↗ Open in new tab
+                  </a>
+                </div>
+                <img
+                  src={imageChat.src}
+                  alt="Analyzed"
+                  className="image-analysis-preview"
+                  onClick={() => setImageFit((f) => !f)}
+                />
               </div>
               <div className="image-analysis-chat-pane">
                 <div className="image-chat-messages">
