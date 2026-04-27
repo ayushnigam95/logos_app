@@ -34,17 +34,20 @@ class SamlAuthenticator:
 
         If headless=True and session is expired, will fallback to headed mode.
         """
+        import os
+        # Force headless mode in Docker
+        in_docker = os.environ.get("IN_DOCKER", "0") == "1"
         self._playwright = await async_playwright().start()
 
         # Try headless first with saved session
-        if headless and self._session_exists():
+        if (headless or in_docker) and self._session_exists():
             cookies = await self._try_saved_session()
             if cookies:
                 return cookies
             logger.info("Saved session expired, falling back to headed login")
 
         # Headed login (user completes SAML manually)
-        return await self._interactive_login()
+        return await self._interactive_login(headless=in_docker)
 
     async def _try_saved_session(self) -> list[dict] | None:
         """Try to reuse a saved browser session. Returns cookies if valid."""
@@ -82,14 +85,17 @@ class SamlAuthenticator:
                 self._context = None
             return None
 
-    async def _interactive_login(self) -> list[dict]:
-        """Open a headed browser for the user to complete SAML login."""
+    async def _interactive_login(self, headless: bool = False) -> list[dict]:
+        """Open a browser for the user to complete SAML login. Headless if specified."""
         logger.info("Opening browser for SAML login...")
-        logger.info("Please complete the login in the browser window.")
+        if headless:
+            logger.info("Running in Docker: using headless browser for SAML login.")
+        else:
+            logger.info("Please complete the login in the browser window.")
 
         self._context = await self._playwright.chromium.launch_persistent_context(
             user_data_dir=str(self.session_dir),
-            headless=False,
+            headless=headless,
             viewport={"width": 1280, "height": 800},
         )
         page = self._context.pages[0] if self._context.pages else await self._context.new_page()
