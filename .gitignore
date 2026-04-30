@@ -1,22 +1,3 @@
-# ==== Python ====
-__pycache__/
-*.py[cod]
-*.egg-info/
-*.egg
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-.tox/
-.coverage
-htmlcov/
-*.log
-
-# Virtual environments
-venv/
-.venv/
-env/
-ENV/
-
 # ==== Secrets / config ====
 .env
 .env.local
@@ -25,19 +6,13 @@ ENV/
 *.key
 
 # ==== App data ====
-data/
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
-backend/data/
-backend/cache/
-backend/exports/
-backend/browser_session/
-backend/_session_cache/
 /tmp/confluence_debug/
 
-# ==== Node / frontend ====
+# ==== Node ====
 node_modules/
 dist/
 build/
@@ -45,6 +20,10 @@ build/
 .cache/
 *.tsbuildinfo
 coverage/
+
+# ==== Electron ====
+electron/dist/
+electron/release/
 
 # ==== IDE / editor ====
 .vscode/

@@ -1,0 +1,17 @@
+{
+  "name": "logos-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Logos — Confluence translator desktop app",
+  "main": "electron/dist/main.js",
+  "scripts": {
+    "install:all": "cd electron && npm install",
+    "dev": "cd electron && npm run dev",
+    "build": "cd electron && npm run build",
+    "start": "cd electron && npm run start",
+    "test": "cd electron && npm run test",
+    "package": "cd electron && npm run package",
+    "clean": "cd electron && npm run clean"
+  }
+}
+

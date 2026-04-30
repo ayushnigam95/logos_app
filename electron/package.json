@@ -1,0 +1,95 @@
+{
+  "name": "logos-electron",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Logos — Confluence translator desktop app (main process + React renderer)",
+  "main": "dist/main.js",
+  "scripts": {
+    "build:main": "tsc -p tsconfig.json",
+    "build:renderer": "vite build",
+    "build": "npm run build:main && npm run build:renderer",
+    "dev:vite": "vite",
+    "dev:electron": "wait-on tcp:5173 && cross-env NODE_ENV=development electron dist/main.js",
+    "dev": "npm run build:main && concurrently -k -n vite,electron -c green,blue \"npm:dev:vite\" \"npm:dev:electron\"",
+    "start": "cross-env NODE_ENV=production electron dist/main.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck:renderer": "tsc -p tsconfig.renderer.json",
+    "rebuild-native": "electron-rebuild -f -w better-sqlite3",
+    "install-browsers": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
+    "postinstall": "npm run rebuild-native && npm run install-browsers",
+    "package": "npm run build && electron-builder --mac --x64 --arm64",
+    "package:all": "npm run build && electron-builder -mwl",
+    "clean": "rimraf dist release"
+  },
+  "build": {
+    "appId": "com.logos.app",
+    "productName": "Logos",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/playwright/**/*",
+      "node_modules/playwright-core/**/*",
+      "node_modules/better-sqlite3/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ]
+    }
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "cheerio": "^1.2.0",
+    "jszip": "^3.10.1",
+    "openai": "^6.35.0",
+    "playwright": "^1.59.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "jsdom": "^25.0.0",
+    "rimraf": "^6.0.1",
+    "typescript": "~5.7.0",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.0",
+    "wait-on": "^8.0.1"
+  }
+}
+
