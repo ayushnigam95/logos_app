@@ -29,6 +29,10 @@ interface ElectronAPI {
     suggestedName?: string,
   ) => Promise<{ saved: boolean; path?: string }>;
 
+  getSettings: () => Promise<Record<string, string>>;
+  saveSettings: (updates: Record<string, string>) => Promise<{ saved: boolean; path: string }>;
+  listOllamaModels: () => Promise<{ online: boolean; models: string[] }>;
+
   onJobProgress: (cb: (progress: unknown) => void) => () => void;
 }
 

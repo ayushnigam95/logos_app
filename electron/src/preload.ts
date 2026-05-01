@@ -84,6 +84,18 @@ const api = {
       path?: string;
     }>,
 
+  getSettings: () =>
+    ipcRenderer.invoke('settings:get') as Promise<Record<string, string>>,
+
+  saveSettings: (updates: Record<string, string>) =>
+    ipcRenderer.invoke('settings:save', updates) as Promise<{ saved: boolean; path: string }>,
+
+  listOllamaModels: () =>
+    ipcRenderer.invoke('settings:listOllamaModels') as Promise<{
+      online: boolean;
+      models: string[];
+    }>,
+
   onJobProgress: (cb: (progress: unknown) => void): (() => void) => {
     const listener = (_e: IpcRendererEvent, progress: unknown) => {
       cb(toSnake(progress));

@@ -67,3 +67,17 @@ export async function exportJobPdf(
 export async function cancelJob(jobId: string): Promise<boolean> {
   return api().cancelJob(jobId);
 }
+
+export async function getSettings(): Promise<Record<string, string>> {
+  return api().getSettings();
+}
+
+export async function saveSettings(
+  updates: Record<string, string>,
+): Promise<{ saved: boolean; path: string }> {
+  return api().saveSettings(updates);
+}
+
+export async function listOllamaModels(): Promise<{ online: boolean; models: string[] }> {
+  return api().listOllamaModels();
+}
