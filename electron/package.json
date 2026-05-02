@@ -18,13 +18,14 @@
     "rebuild-native": "electron-rebuild -f -w better-sqlite3",
     "install-browsers": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 playwright install chromium",
     "postinstall": "npm run rebuild-native && npm run install-browsers",
-    "package": "npm run build && electron-builder --mac --x64 --arm64",
+    "package": "npm run build && node_modules/.bin/electron-builder --mac --x64 && node_modules/.bin/electron-builder --mac --arm64",
     "package:all": "npm run build && electron-builder -mwl",
     "clean": "rimraf dist release"
   },
   "build": {
     "appId": "com.logos.app",
     "productName": "Logos",
+    "icon": "assets/logo",
     "asar": true,
     "asarUnpack": [
       "node_modules/playwright/**/*",
@@ -36,6 +37,7 @@
     },
     "files": [
       "dist/**/*",
+      "assets/**/*",
       "package.json"
     ],
     "extraResources": [],
