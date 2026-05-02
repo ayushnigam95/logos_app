@@ -16,10 +16,11 @@ crawls + translates everything locally.
 - 🌳 **Recursive crawl** — pulls a page and every descendant
 - 🤖 **OpenAI-compatible translation** — works with any chat-completions endpoint (Ollama, OpenAI, Azure, Groq, etc.)
 - 🧱 **Confluence macro support** — drawio / gliffy / lucidchart / plantuml / mermaid (rendered as images), info / note / warning / tip panels, expand, code, status, jira, layouts, ac:link, task lists, emoticons, and more
-- 📋 **Page Summary** + 📝 **Important Notes** generated on demand
-- 🔍 **Hover-to-analyze images** — side-by-side modal with multi-turn chat against a vision model
+- 📋 **Page Summary** + 📝 **Important Notes** generated on demand with markdown rendering
+- 🔍 **Hover-to-analyze images** — side-by-side modal with multi-turn vision-model chat and markdown responses
 - 📄 **PDF export** — single combined PDF, or ZIP of per-page PDFs (native save dialog)
 - 💾 **Translation cache** — SHA-256-keyed SQLite cache (`better-sqlite3`)
+- ⚙️ **In-app Settings panel** — edit all config at runtime (no restart needed); live Ollama connection status and dynamic model dropdown
 
 ---
 
@@ -99,6 +100,8 @@ or from the real shell environment (which always wins).
 | `TARGET_LANGUAGE`      | `en`                                    | Target language code                        |
 | `MAX_CONCURRENT_PAGES` | `5`                                     | Parallel translation workers                |
 
+Settings can also be changed at runtime via the **⚙️ gear icon** in the app header — changes apply immediately without restarting. The Settings panel also shows a live Ollama connection status indicator and populates model dropdowns from `/api/tags` when Ollama is reachable.
+
 Caches and persistent state (translation cache, browser session) live under
 `app.getPath('userData')`:
 
@@ -167,7 +170,12 @@ logos_app/
 │   │   └── types/index.ts
 │   ├── renderer/                # React renderer (DOM side, bundled by Vite)
 │   │   ├── index.html
-│   │   └── src/                 # components, hooks, services, types, test
+│   │   └── src/
+│   │       ├── App.tsx          # Root component; header with Ollama dot + settings gear
+│   │       ├── components/      # PageTree, TranslatedView, ImageAnalysis, Settings, Markdown
+│   │       ├── hooks/           # useJobProgress (IPC event listener)
+│   │       ├── services/api.ts  # window.electronAPI wrappers
+│   │       └── types/
 │   ├── vite.config.ts           # root: ./renderer, outDir: ./dist/renderer
 │   ├── tsconfig.json            # Main process (Node lib)
 │   ├── tsconfig.renderer.json   # Renderer (DOM lib)
