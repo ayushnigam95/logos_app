@@ -4,8 +4,9 @@ import { ProgressTracker } from './components/ProgressTracker';
 import { PageTree } from './components/PageTree';
 import { PageViewer } from './components/PageViewer';
 import { PdfDownload } from './components/PdfDownload';
+import { Settings } from './components/Settings';
 import { useWebSocket } from './hooks/useWebSocket';
-import { createJob, getJobPages } from './services/api';
+import { createJob, getJobPages, listOllamaModels } from './services/api';
 import type { JobRequest, PageNode } from './types';
 
 export default function App() {
@@ -14,9 +15,27 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [pageTree, setPageTree] = useState<PageNode | null>(null);
   const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
+  const [ollamaOnline, setOllamaOnline] = useState<boolean | null>(null);
   const fetchedJobRef = useRef<string | null>(null);
 
   const { progress } = useWebSocket(jobId);
+
+  // Poll Ollama status for header indicator
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const { online } = await listOllamaModels();
+        if (!cancelled) setOllamaOnline(online);
+      } catch {
+        if (!cancelled) setOllamaOnline(false);
+      }
+    };
+    poll();
+    const id = setInterval(poll, 10000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, []);
 
   const handleSubmit = async (request: JobRequest) => {
     setLoading(true);
@@ -69,9 +88,25 @@ export default function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>🌐 Logos</h1>
-        <p>Translate Confluence pages to English — including nested children and images</p>
+        <div className="app-header-title">
+          <h1>🌐 Logos</h1>
+          <p>Translate Confluence pages to English — including nested children and images</p>
+        </div>
+        <div className="app-header-actions">
+          {ollamaOnline !== null && (
+            <span className={`header-status-dot ${ollamaOnline ? 'online' : 'offline'}`} title={ollamaOnline ? 'Ollama online' : 'Ollama offline'} />
+          )}
+          <button
+            className="header-settings-btn"
+            onClick={() => setShowSettings(true)}
+            title="Settings"
+          >
+            ⚙️
+          </button>
+        </div>
       </header>
+
+      {showSettings && <Settings onClose={() => setShowSettings(false)} />}
 
       <main>
         <UrlInput onSubmit={handleSubmit} loading={loading} />

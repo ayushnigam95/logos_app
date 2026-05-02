@@ -31,7 +31,7 @@ export interface AppSettings {
   maxConcurrentPages: number;
 }
 
-function buildSettings(): AppSettings {
+export function buildSettings(): AppSettings {
   const base = userDataDir();
   return {
     confluenceBaseUrl: process.env.CONFLUENCE_BASE_URL ?? '',
