@@ -121,10 +121,7 @@ export class TranslationService {
       return numPrefix + (result || body);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.error(`[translator] LLM translation failed (${text.length} chars): ${msg}`);
-      // Surface auth/connection problems instead of silently returning the
-      // original text — otherwise the user sees the source language and
-      // assumes translation "didn't run".
+      console.error(`[translator] LLM error (${text.length} chars): ${msg}`);
       if (/401|403|unauthorized|forbidden|invalid.*token/i.test(msg)) {
         throw new Error(
           `LLM authentication failed (${msg}). Check LLM_API_KEY / LLM_BASE_URL / LLM_MODEL.`,
@@ -140,7 +137,8 @@ export class TranslationService {
           `LLM model not found (${msg}). Check LLM_MODEL — currently "${settings.llmModel}".`,
         );
       }
-      return text;
+      // Surface all other errors too — silently returning original text hides problems
+      throw new Error(`LLM translation error: ${msg}`);
     }
   }
 
