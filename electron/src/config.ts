@@ -34,18 +34,18 @@ export interface AppSettings {
 export function buildSettings(): AppSettings {
   const base = userDataDir();
   return {
-    confluenceBaseUrl: process.env.CONFLUENCE_BASE_URL ?? '',
+    confluenceBaseUrl: process.env.CONFLUENCE_BASE_URL || '',
 
-    llmApiKey: process.env.LLM_API_KEY ?? '',
-    llmBaseUrl: process.env.LLM_BASE_URL ?? 'https://models.inference.ai.azure.com',
-    llmModel: process.env.LLM_MODEL ?? 'gpt-4o',
-    llmVisionModel: process.env.LLM_VISION_MODEL ?? '',
-    targetLanguage: process.env.TARGET_LANGUAGE ?? 'en',
+    llmApiKey: process.env.LLM_API_KEY || 'ollama',
+    llmBaseUrl: process.env.LLM_BASE_URL || 'http://localhost:11434/v1',
+    llmModel: process.env.LLM_MODEL || 'gemma4:latest',
+    llmVisionModel: process.env.LLM_VISION_MODEL || 'gemma4:latest',
+    targetLanguage: process.env.TARGET_LANGUAGE || 'en',
 
-    cacheDbPath: process.env.CACHE_DB_PATH ?? path.join(base, 'data', 'cache.db'),
+    cacheDbPath: process.env.CACHE_DB_PATH || path.join(base, 'data', 'cache.db'),
     browserSessionDir:
-      process.env.BROWSER_SESSION_DIR ?? path.join(base, 'browser_session'),
-    maxConcurrentPages: Number(process.env.MAX_CONCURRENT_PAGES ?? 5),
+      process.env.BROWSER_SESSION_DIR || path.join(base, 'browser_session'),
+    maxConcurrentPages: Number(process.env.MAX_CONCURRENT_PAGES || 5),
   };
 }
 

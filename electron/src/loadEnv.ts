@@ -50,8 +50,21 @@ function applyFile(filePath: string, loaded: string[]): void {
 }
 
 export function loadDotEnv(): void {
-  // app.getAppPath() points at the asar root in production, electron/dist in dev.
-  // Walk up from there to find the project root that contains package.json.
+  // 1. Load settings.json from userData (saved by the Settings panel)
+  try {
+    const jsonPath = path.join(app.getPath('userData'), 'settings.json');
+    if (fs.existsSync(jsonPath)) {
+      const saved = JSON.parse(fs.readFileSync(jsonPath, 'utf-8')) as Record<string, string>;
+      for (const [k, v] of Object.entries(saved)) {
+        if (!process.env[k]) process.env[k] = v;
+      }
+      console.info(`[env] loaded settings from: ${jsonPath}`);
+    }
+  } catch (e) {
+    console.warn('[env] Failed to load settings.json:', e);
+  }
+
+  // 2. Also try .env files as a fallback (for dev overrides)
   const candidates: string[] = [];
 
   const appPath = (() => {

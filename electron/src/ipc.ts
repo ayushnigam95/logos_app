@@ -8,7 +8,6 @@
 
 import { ipcMain, BrowserWindow, dialog } from 'electron';
 import { promises as fsp } from 'fs';
-import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
 import { settings, buildSettings } from './config';
@@ -261,93 +260,42 @@ export function registerIpcHandlers(): void {
     'MAX_CONCURRENT_PAGES',
   ] as const;
 
-  function resolveEnvFilePath(): string {
-    // Same logic as loadEnv: project root .env (dev), then userData .env (packaged)
-    const appPath = (() => { try { return app.getAppPath(); } catch { return process.cwd(); } })();
-    const projectRoot = path.resolve(appPath, '..', '..');
-    const projectEnv = path.join(projectRoot, '.env');
-    if (fs.existsSync(projectEnv)) return projectEnv;
-    return path.join(app.getPath('userData'), '.env');
+  function settingsJsonPath(): string {
+    return path.join(app.getPath('userData'), 'settings.json');
   }
 
-  function parseEnvFile(content: string): Record<string, string> {
-    const out: Record<string, string> = {};
-    for (const raw of content.split(/\r?\n/)) {
-      const line = raw.trim();
-      if (!line || line.startsWith('#')) continue;
-      const eq = line.indexOf('=');
-      if (eq < 0) continue;
-      const key = line.slice(0, eq).trim();
-      let val = line.slice(eq + 1).trim();
-      if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-        val = val.slice(1, -1);
-      }
-      if (key) out[key] = val;
-    }
-    return out;
-  }
-
-  ipcMain.handle('settings:get', () => {
-    const result: Record<string, string> = {};
-    for (const k of SETTINGS_KEYS) result[k] = process.env[k] ?? '';
-    return result;
-  });
+  ipcMain.handle('settings:get', () => ({
+    CONFLUENCE_BASE_URL: settings.confluenceBaseUrl,
+    LLM_API_KEY: settings.llmApiKey,
+    LLM_BASE_URL: settings.llmBaseUrl,
+    LLM_MODEL: settings.llmModel,
+    LLM_VISION_MODEL: settings.llmVisionModel,
+    TARGET_LANGUAGE: settings.targetLanguage,
+    MAX_CONCURRENT_PAGES: String(settings.maxConcurrentPages),
+  }));
 
   ipcMain.handle('settings:save', async (_e, updates: Record<string, string>) => {
-    const envPath = resolveEnvFilePath();
+    const jsonPath = settingsJsonPath();
+
+    // Read existing saved settings (if any)
     let existing: Record<string, string> = {};
-    let rawLines: string[] = [];
     try {
-      const content = await fsp.readFile(envPath, 'utf-8');
-      rawLines = content.split(/\r?\n/);
-      existing = parseEnvFile(content);
-    } catch {
-      // file doesn't exist yet — start fresh
-    }
+      existing = JSON.parse(await fsp.readFile(jsonPath, 'utf-8'));
+    } catch { /* first save */ }
 
-    // Merge updates into the parsed map
     const merged = { ...existing, ...updates };
+    await fsp.writeFile(jsonPath, JSON.stringify(merged, null, 2), 'utf-8');
 
-    // Rebuild file: keep comments + blank lines from original, update/append keys
-    const handledKeys = new Set<string>();
-    const newLines: string[] = [];
-
-    for (const raw of rawLines) {
-      const line = raw.trim();
-      if (!line || line.startsWith('#')) {
-        newLines.push(raw);
-        continue;
-      }
-      const eq = line.indexOf('=');
-      if (eq < 0) { newLines.push(raw); continue; }
-      const key = line.slice(0, eq).trim();
-      if (key in merged) {
-        newLines.push(`${key}=${merged[key]}`);
-        handledKeys.add(key);
-      } else {
-        newLines.push(raw);
-      }
-    }
-
-    // Append any new keys not already in file
-    for (const [k, v] of Object.entries(updates)) {
-      if (!handledKeys.has(k)) newLines.push(`${k}=${v}`);
-    }
-
-    const content = newLines.join('\n') + '\n';
-    await fsp.writeFile(envPath, content, 'utf-8');
-
-    // Apply to current process.env immediately
+    // Apply to current process.env immediately so buildSettings() picks them up
     for (const [k, v] of Object.entries(updates)) {
       process.env[k] = v;
     }
 
-    // Refresh the in-memory settings object so new values take effect for
-    // subsequent calls without requiring a restart.
+    // Refresh the in-memory settings object — changes take effect immediately
     const fresh = buildSettings();
     Object.assign(settings, fresh);
 
-    return { saved: true, path: envPath };
+    return { saved: true, path: jsonPath };
   });
 
   ipcMain.handle('settings:listOllamaModels', async () => {
