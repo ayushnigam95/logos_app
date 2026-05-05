@@ -9,9 +9,25 @@
  */
 
 import * as fs from 'fs';
+import { app } from 'electron';
 import { chromium, BrowserContext } from 'playwright';
 import { settings } from '../config';
 import type { CookieJar } from '../types';
+
+/**
+ * Rewrite the Chromium executable path from app.asar → app.asar.unpacked
+ * when running packaged, so the OS can spawn it (executables cannot be
+ * launched from inside an asar archive).
+ */
+function chromiumExecutablePath(): string | undefined {
+  if (!app.isPackaged) return undefined;
+  try {
+    const raw = chromium.executablePath();
+    return raw.replace(/app\.asar([/\\])/g, 'app.asar.unpacked$1');
+  } catch {
+    return undefined;
+  }
+}
 
 const LOGIN_KEYWORDS = ['login', 'sso', 'saml', 'auth', 'signin'];
 
@@ -50,6 +66,7 @@ export class SamlAuthenticator {
     try {
       this.context = await chromium.launchPersistentContext(this.sessionDir, {
         headless: true,
+        executablePath: chromiumExecutablePath(),
       });
       const page = this.context.pages()[0] ?? (await this.context.newPage());
 
@@ -88,6 +105,7 @@ export class SamlAuthenticator {
     this.context = await chromium.launchPersistentContext(this.sessionDir, {
       headless: false,
       viewport: { width: 1280, height: 800 },
+      executablePath: chromiumExecutablePath(),
     });
     const page = this.context.pages()[0] ?? (await this.context.newPage());
 

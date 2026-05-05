@@ -6,7 +6,18 @@
  */
 
 import JSZip from 'jszip';
+import { app } from 'electron';
 import { chromium } from 'playwright';
+
+function chromiumExecutablePath(): string | undefined {
+  if (!app.isPackaged) return undefined;
+  try {
+    const raw = chromium.executablePath();
+    return raw.replace(/app\.asar([/\\])/g, 'app.asar.unpacked$1');
+  } catch {
+    return undefined;
+  }
+}
 
 const PAGE_CSS = `
 body {
@@ -72,7 +83,7 @@ function combinedHtml(pages: PdfPage[]): string {
 }
 
 async function renderPdf(html: string): Promise<Buffer> {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ headless: true, executablePath: chromiumExecutablePath() });
   try {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle' });
