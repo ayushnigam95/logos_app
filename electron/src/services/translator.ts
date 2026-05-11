@@ -17,7 +17,7 @@ import { extractTextNodes, replaceTextNodes } from '../utils/htmlProcessor';
 const TRANSLATE_SYSTEM_PROMPT = (lang: string): string =>
   `You are a professional translator. Your only job is to translate the given text into ${lang}.\n` +
   `Rules:\n` +
-  `- ALWAYS translate. Even if you think the text looks familiar or partially in ${lang}, translate everything that is not ${lang}.\n` +
+  `- ALWAYS translate. Even if you think the text looks familiar or partially in ${lang}, translate everything in ${lang}.\n` +
   `- Return ONLY the translated text, nothing else\n` +
   `- No explanations, notes, preamble, or commentary\n` +
   `- Do NOT add any markdown formatting: no **, no *, no #, no -, no numbered lists\n` +
